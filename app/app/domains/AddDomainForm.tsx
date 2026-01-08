@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { createDomain } from "./actions";
 
+
 export default function AddDomainForm() {
   const [state, formAction, isPending] = useActionState(createDomain, {
     ok: false,

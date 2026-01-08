@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getDbUser } from "@/lib/currentUser";
-import { redirect } from "next/navigation";
-
 
 function normalizeDomain(input: string) {
-  return input.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
 }
 
 export async function createDomain(_prevState: any, formData: FormData) {
@@ -23,7 +25,10 @@ export async function createDomain(_prevState: any, formData: FormData) {
   const registrar = registrarRaw.trim() || null;
 
   if (!name || !name.includes(".") || name.length < 4) {
-    return { ok: false, error: "Please enter a valid domain (example: example.com)" };
+    return {
+      ok: false,
+      error: "Please enter a valid domain (example: example.com)",
+    };
   }
 
   const expiryDate = expiryRaw ? new Date(expiryRaw) : null;
@@ -42,6 +47,20 @@ export async function createDomain(_prevState: any, formData: FormData) {
   });
 
   revalidatePath("/app/domains");
-  redirect("/app/domains");
-  
+  return { ok: true, error: null };
 }
+
+export async function deleteDomain(formData: FormData) {
+  const dbUser = await getDbUser();
+  if (!dbUser) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  await prisma.domain.deleteMany({
+    where: { id, userId: dbUser.id },
+  });
+
+  revalidatePath("/app/domains");
+}
+
