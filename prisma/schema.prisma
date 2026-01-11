@@ -13,6 +13,8 @@ model User {
   email       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  alertSettings AlertSettings?
+
 
   domains Domain[]
 }
@@ -35,4 +37,17 @@ model Domain {
 
   @@index([userId])
   @@index([expiryDate])
+}
+
+model AlertSettings {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  alert30Days   Boolean  @default(true)
+  alert7Days    Boolean  @default(true)
+  alert1Day     Boolean  @default(true)
+  weeklySummary Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

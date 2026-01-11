@@ -8,9 +8,18 @@ export async function getDbUser() {
   const user = await currentUser();
   const email = user?.emailAddresses?.[0]?.emailAddress ?? null;
 
-  return prisma.user.upsert({
+  const dbUser = await prisma.user.upsert({
     where: { clerkUserId: userId },
     update: { email },
     create: { clerkUserId: userId, email },
   });
+
+  // ✅ Ensure default alert settings exist for every user
+  await prisma.alertSettings.upsert({
+    where: { userId: dbUser.id },
+    update: {},
+    create: { userId: dbUser.id },
+  });
+
+  return dbUser;
 }
