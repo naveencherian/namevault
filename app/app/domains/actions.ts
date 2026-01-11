@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getDbUser } from "@/lib/currentUser";
+import { redirect } from "next/navigation";
+
 
 function normalizeDomain(input: string) {
   return input
@@ -64,3 +66,37 @@ export async function deleteDomain(formData: FormData) {
   revalidatePath("/app/domains");
 }
 
+export async function updateDomain(formData: FormData) {
+  const dbUser = await getDbUser();
+  if (!dbUser) redirect("/sign-in");
+
+  const id = String(formData.get("id") ?? "");
+  const nameRaw = String(formData.get("name") ?? "");
+  const registrarRaw = String(formData.get("registrar") ?? "");
+  const expiryRaw = String(formData.get("expiryDate") ?? "");
+  const autoRenew = formData.get("autoRenew") === "on";
+
+  if (!id) redirect("/app/domains");
+
+  const name = nameRaw
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+
+  const registrar = registrarRaw.trim() || null;
+  const expiryDate = expiryRaw ? new Date(expiryRaw) : null;
+
+  await prisma.domain.updateMany({
+    where: { id, userId: dbUser.id }, // 🔒 ensure ownership
+    data: {
+      name,
+      registrar,
+      expiryDate,
+      autoRenew,
+    },
+  });
+
+  revalidatePath("/app/domains");
+  redirect("/app/domains");
+}

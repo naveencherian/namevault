@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import AddDomainForm from "./AddDomainForm";
 import { deleteDomain } from "./actions";
 import DeleteButton from "./DeleteButton";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -70,11 +71,23 @@ export default async function DomainsPage() {
 
                   {/* Delete */}
                   <td className="p-3 text-right">
-                    <form action={deleteDomain}>
-                      <input type="hidden" name="id" value={d.id} />
-                      <DeleteButton />
-                    </form>
-                  </td>
+  <div className="inline-flex items-center gap-4">
+    {/* Edit */}
+    <Link
+      href={`/app/domains/${d.id}/edit`}
+      className="text-sm text-blue-700 hover:text-blue-900"
+    >
+      Edit
+    </Link>
+
+    {/* Delete */}
+    <form action={deleteDomain} className="inline">
+      <input type="hidden" name="id" value={d.id} />
+      <DeleteButton />
+    </form>
+  </div>
+</td>
+
                 </tr>
               ))}
             </tbody>
